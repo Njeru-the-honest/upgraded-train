@@ -4,6 +4,7 @@ import { Restaurant, MenuItem } from "../types";
 import RestaurantCard from "../components/RestaurantCard";
 import MenuItemCard from "../components/MenuItemCard";
 import HeroBanner from "../components/HeroBanner";
+import RestaurantReviews from "../components/RestaurantReviews";
 import { RestaurantCardSkeleton, MenuItemCardSkeleton } from "../components/Skeleton";
 import { ArrowLeft, Search } from "lucide-react";
 import toast from "react-hot-toast";
@@ -61,8 +62,6 @@ const CustomerDashboard = () => {
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-
-
   return (
     <div className="min-h-screen bg-gray-50">
       {!selectedRestaurant && <HeroBanner />}
@@ -80,8 +79,11 @@ const CustomerDashboard = () => {
 
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <h1 className="text-3xl font-bold text-gray-900">{selectedRestaurant.name}</h1>
-              {selectedRestaurant.description && (
-                <p className="text-gray-600 mt-2">{selectedRestaurant.description}</p>
+              {selectedRestaurant.location && (
+                <p className="text-gray-600 mt-2">📍 {selectedRestaurant.location}</p>
+              )}
+              {selectedRestaurant.contactInfo && (
+                <p className="text-gray-600 mt-1">📞 {selectedRestaurant.contactInfo}</p>
               )}
             </div>
 
@@ -98,20 +100,29 @@ const CustomerDashboard = () => {
               </div>
             </div>
 
-            <div className="grid gap-4">
-              {loading ? (
-                <>
-                  {[...Array(6)].map((_, index) => (
-                    <MenuItemCardSkeleton key={index} />
-                  ))}
-                </>
-              ) : filteredMenuItems.length > 0 ? (
-                filteredMenuItems.map((item) => <MenuItemCard key={item.id} item={item} />)
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">No menu items found</p>
-                </div>
-              )}
+            {/* Menu Items Section */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Menu</h2>
+              <div className="grid gap-4">
+                {loading ? (
+                  <>
+                    {[...Array(6)].map((_, index) => (
+                      <MenuItemCardSkeleton key={index} />
+                    ))}
+                  </>
+                ) : filteredMenuItems.length > 0 ? (
+                  filteredMenuItems.map((item) => <MenuItemCard key={item.id} item={item} />)
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">No menu items found</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Reviews Section */}
+            <div className="mt-8">
+              <RestaurantReviews restaurantId={selectedRestaurant.id} />
             </div>
           </>
         ) : (

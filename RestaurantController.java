@@ -1,5 +1,6 @@
 package com.example.fooddelivery.controller;
 
+import com.example.fooddelivery.dto.MenuItemDTO;
 import com.example.fooddelivery.model.MenuItem;
 import com.example.fooddelivery.model.Order;
 import com.example.fooddelivery.model.OrderStatus;
@@ -15,7 +16,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/restaurants")
-@CrossOrigin(origins = "*")
+@CrossOrigin(
+    origins = {"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000", "http://127.0.0.1:3000"},
+    allowedHeaders = "*",
+    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS},
+    allowCredentials = "true"
+)
 public class RestaurantController {
     
     private final RestaurantService restaurantService;
@@ -40,8 +46,8 @@ public class RestaurantController {
     }
     
     @GetMapping("/{id}/menu")
-    public ResponseEntity<List<MenuItem>> getRestaurantMenu(@PathVariable Long id) {
-        List<MenuItem> menuItems = restaurantService.getMenuItemsByRestaurantId(id);
+    public ResponseEntity<List<MenuItemDTO>> getRestaurantMenu(@PathVariable Long id) {
+        List<MenuItemDTO> menuItems = restaurantService.getMenuItemsByRestaurantId(id);
         return ResponseEntity.ok(menuItems);
     }
     
@@ -51,13 +57,13 @@ public class RestaurantController {
         return ResponseEntity.ok(orders);
     }
     
-    @PutMapping("/{restaurantId}/menu/{itemId}")
+    @PutMapping("/{restaurantId}/menu/{menuItemId}")
     public ResponseEntity<MenuItem> updateMenuItem(
             @PathVariable Long restaurantId,
-            @PathVariable Long itemId,
+            @PathVariable Long menuItemId,
             @RequestBody MenuItem menuItem) {
-        MenuItem updatedItem = restaurantService.updateMenuItem(restaurantId, itemId, menuItem);
-        return ResponseEntity.ok(updatedItem);
+        MenuItem updatedMenuItem = restaurantService.updateMenuItem(restaurantId, menuItemId, menuItem);
+        return ResponseEntity.ok(updatedMenuItem);
     }
     
     @PutMapping("/orders/{orderId}/status")

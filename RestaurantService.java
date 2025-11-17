@@ -1,5 +1,6 @@
 package com.example.fooddelivery.service;
 
+import com.example.fooddelivery.dto.MenuItemDTO;
 import com.example.fooddelivery.exception.ResourceNotFoundException;
 import com.example.fooddelivery.model.MenuItem;
 import com.example.fooddelivery.model.Restaurant;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RestaurantService {
@@ -35,9 +37,21 @@ public class RestaurantService {
     }
     
     @Transactional(readOnly = true)
-    public List<MenuItem> getMenuItemsByRestaurantId(Long restaurantId) {
+    public List<MenuItemDTO> getMenuItemsByRestaurantId(Long restaurantId) {
         Restaurant restaurant = getRestaurantById(restaurantId);
-        return menuItemRepository.findByRestaurant(restaurant);  // FIXED: Changed from findByRestaurantId
+        List<MenuItem> menuItems = menuItemRepository.findByRestaurant(restaurant);
+        
+        // Convert to DTO with explicit restaurantId
+        return menuItems.stream()
+            .map(item -> new MenuItemDTO(
+                item.getId(),
+                item.getName(),
+                item.getDescription(),
+                item.getPrice(),
+                item.getDiscountPercentage(),
+                restaurantId
+            ))
+            .collect(Collectors.toList());
     }
     
     @Transactional
@@ -61,10 +75,10 @@ public class RestaurantService {
     }
     
     @Transactional
-    public MenuItem updateMenuItem(Long restaurantId, Long itemId, MenuItem menuItemDetails) {
+    public MenuItem updateMenuItem(Long restaurantId, Long menuItemId, MenuItem menuItemDetails) {
         Restaurant restaurant = getRestaurantById(restaurantId);
-        MenuItem menuItem = menuItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id: " + itemId));
+        MenuItem menuItem = menuItemRepository.findById(menuItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id: " + menuItemId));
         
         if (!menuItem.getRestaurant().getId().equals(restaurantId)) {
             throw new IllegalArgumentException("Menu item does not belong to this restaurant");

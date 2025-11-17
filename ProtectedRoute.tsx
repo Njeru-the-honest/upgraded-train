@@ -4,20 +4,30 @@ import { UserContext } from "../context/UserContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  adminOnly?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { token, loading } = useContext(UserContext);
+const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) => {
+  const { user, loading } = useContext(UserContext);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
       </div>
     );
   }
 
-  return token ? <>{children}</> : <Navigate to="/auth" replace />;
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Check if admin access is required
+  if (adminOnly && user.role !== "ADMIN") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

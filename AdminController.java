@@ -17,7 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin")
 @CrossOrigin(
-    origins = {"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000", "http://127.0.0.1:3000"},
+    origins = {"http://localhost:5173", "http://127.0.0.1:5173"},
     allowedHeaders = "*",
     methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS},
     allowCredentials = "true"
@@ -29,7 +29,7 @@ public class AdminController {
     private final CustomerService customerService;
     
     @Autowired
-    public AdminController(RestaurantService restaurantService, 
+    public AdminController(RestaurantService restaurantService,
                           OrderService orderService,
                           CustomerService customerService) {
         this.restaurantService = restaurantService;
@@ -45,19 +45,18 @@ public class AdminController {
         List<Order> orders = orderService.getAllOrders();
         List<Customer> customers = customerService.getAllCustomers();
         
+        // Calculate total revenue from all orders
+        double totalRevenue = orders.stream()
+            .flatMap(order -> order.getOrderItems().stream())
+            .mapToDouble(item -> item.getUnitPrice() * item.getQuantity())
+            .sum();
+        
         stats.put("totalRestaurants", restaurants.size());
         stats.put("totalOrders", orders.size());
         stats.put("totalCustomers", customers.size());
-        
-        // Calculate total revenue
-        double totalRevenue = orders.stream()
-            .filter(order -> order.getPayment() != null)
-            .mapToDouble(order -> order.getPayment().getAmount())
-            .sum();
         stats.put("totalRevenue", totalRevenue);
-        
         stats.put("restaurants", restaurants);
-        stats.put("recentOrders", orders.stream().limit(10).toList());
+        stats.put("recentOrders", orders);
         stats.put("customers", customers);
         
         return ResponseEntity.ok(stats);
@@ -68,16 +67,6 @@ public class AdminController {
         return ResponseEntity.ok(restaurantService.getAllRestaurants());
     }
     
-    @GetMapping("/orders")
-    public ResponseEntity<List<Order>> getAllOrders() {
-        return ResponseEntity.ok(orderService.getAllOrders());
-    }
-    
-    @GetMapping("/customers")
-    public ResponseEntity<List<Customer>> getAllCustomers() {
-        return ResponseEntity.ok(customerService.getAllCustomers());
-    }
-    
     @PostMapping("/restaurants")
     public ResponseEntity<Restaurant> createRestaurant(@RequestBody Restaurant restaurant) {
         return ResponseEntity.ok(restaurantService.createRestaurant(restaurant));
@@ -85,7 +74,7 @@ public class AdminController {
     
     @PutMapping("/restaurants/{id}")
     public ResponseEntity<Restaurant> updateRestaurant(
-            @PathVariable Long id, 
+            @PathVariable Long id,
             @RequestBody Restaurant restaurant) {
         return ResponseEntity.ok(restaurantService.updateRestaurant(id, restaurant));
     }
@@ -94,5 +83,15 @@ public class AdminController {
     public ResponseEntity<Void> deleteRestaurant(@PathVariable Long id) {
         restaurantService.deleteRestaurant(id);
         return ResponseEntity.ok().build();
+    }
+    
+    @GetMapping("/orders")
+    public ResponseEntity<List<Order>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrders());
+    }
+    
+    @GetMapping("/customers")
+    public ResponseEntity<List<Customer>> getAllCustomers() {
+        return ResponseEntity.ok(customerService.getAllCustomers());
     }
 }

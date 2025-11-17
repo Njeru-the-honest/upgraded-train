@@ -6,8 +6,10 @@ import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthPage from "./pages/AuthPage";
 import CustomerDashboard from "./pages/CustomerDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import Cart from "./pages/Cart";
 import OrderDetails from "./pages/OrderDetails";
+import Payment from "./pages/Payment";
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
             <Navbar />
             <Routes>
               <Route path="/auth" element={<AuthPage />} />
+              
+              {/* Customer Routes */}
               <Route
                 path="/dashboard"
                 element={
@@ -43,6 +47,25 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/payment/:orderId"
+                element={
+                  <ProtectedRoute>
+                    <Payment />
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Admin Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </div>
