@@ -1,41 +1,43 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
-import { loginUser as apiLogin, registerUser as apiRegister, getUserProfile } from "../services/api";
-import { User } from "../types";
+import { loginUser as apiLogin, registerUser as apiRegister } from "../services/api";
 import toast from "react-hot-toast";
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
 
 interface UserContextType {
   user: User | null;
-  token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
   loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, address: string, phoneNumber: string) => Promise<void>;
+  logout: () => void;
 }
 
 export const UserContext = createContext<UserContextType>({
   user: null,
-  token: null,
+  loading: true,
   login: async () => {},
   register: async () => {},
   logout: () => {},
-  loading: true,
 });
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
-
-    if (storedToken && storedUser && storedUser !== "undefined") {
+    
+    if (token && storedUser) {
       try {
-        setToken(storedToken);
         setUser(JSON.parse(storedUser));
       } catch (error) {
-        console.error("Error parsing stored user data:", error);
+        console.error("Error parsing stored user:", error);
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
@@ -46,24 +48,34 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string) => {
     try {
       const response = await apiLogin({ email, password });
-      const { token: newToken, user: userData } = response.data;
-
-      localStorage.setItem("token", newToken);
+      const { token, name, id, role } = response.data;
+      
+      localStorage.setItem("token", token);
+      const userData = { id, name, email, role };
       localStorage.setItem("user", JSON.stringify(userData));
-      setToken(newToken);
       setUser(userData);
-      toast.success("Login successful!");
+      
+      toast.success(`Welcome back, ${name}!`);
     } catch (error: any) {
+      console.error("Login error:", error);
       toast.error(error.response?.data?.message || "Login failed");
       throw error;
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string, address: string, phoneNumber: string) => {
     try {
-      await apiRegister({ name, email, password });
+      await apiRegister({ 
+        name, 
+        email, 
+        password,
+        address,
+        phoneNumber,
+        role: "CUSTOMER"
+      });
       toast.success("Registration successful! Please login.");
     } catch (error: any) {
+      console.error("Registration error:", error);
       toast.error(error.response?.data?.message || "Registration failed");
       throw error;
     }
@@ -72,13 +84,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    setToken(null);
     setUser(null);
     toast.success("Logged out successfully");
   };
 
   return (
-    <UserContext.Provider value={{ user, token, login, register, logout, loading }}>
+    <UserContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </UserContext.Provider>
   );

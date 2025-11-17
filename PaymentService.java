@@ -4,6 +4,7 @@ import com.example.fooddelivery.dto.PaymentRequest;
 import com.example.fooddelivery.exception.ResourceNotFoundException;
 import com.example.fooddelivery.model.Order;
 import com.example.fooddelivery.model.Payment;
+import com.example.fooddelivery.model.PaymentMethod;
 import com.example.fooddelivery.model.PaymentStatus;
 import com.example.fooddelivery.repository.OrderRepository;
 import com.example.fooddelivery.repository.PaymentRepository;
@@ -32,38 +33,50 @@ public class PaymentService {
     @Transactional
     public Payment processPayment(Long orderId, PaymentRequest paymentRequest) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
         
+        // Check if payment already exists
         if (order.getPayment() != null) {
             throw new IllegalStateException("Payment already processed for this order");
         }
         
+        // Calculate total amount from order items
         double totalAmount = order.getOrderItems().stream()
                 .mapToDouble(item -> item.getUnitPrice() * item.getQuantity())
                 .sum();
         
-        totalAmount += 2.0; // Delivery fee
-        
-        PaymentStatus status = mockPaymentService.processPayment(
+        // Process payment through mock service
+        PaymentStatus paymentStatus = mockPaymentService.processPayment(
                 paymentRequest.getPaymentMethod(), 
                 totalAmount
         );
         
+        // Create payment record
         Payment payment = new Payment();
         payment.setOrder(order);
         payment.setAmount(totalAmount);
         payment.setPaymentMethod(paymentRequest.getPaymentMethod());
-        payment.setPaymentStatus(status);
+        payment.setPaymentStatus(paymentStatus);
         payment.setPaymentDate(LocalDateTime.now());
         
-        return paymentRepository.save(payment);
+        Payment savedPayment = paymentRepository.save(payment);
+        
+        // Update order with payment
+        order.setPayment(savedPayment);
+        orderRepository.save(order);
+        
+        return savedPayment;
     }
     
     @Transactional(readOnly = true)
     public Payment getPaymentByOrderId(Long orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-        return paymentRepository.findByOrder(order)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment not found for this order"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+        
+        if (order.getPayment() == null) {
+            throw new ResourceNotFoundException("Payment not found for order id: " + orderId);
+        }
+        
+        return order.getPayment();
     }
 }

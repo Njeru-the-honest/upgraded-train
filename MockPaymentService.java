@@ -14,18 +14,22 @@ public class MockPaymentService {
     public PaymentStatus processPayment(PaymentMethod paymentMethod, Double amount) {
         // Simulate payment processing delay
         try {
-            Thread.sleep(1000);
+            Thread.sleep(1000); // 1 second delay
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
         
-        // Simulate 80% success rate
-        boolean isSuccessful = random.nextDouble() < 0.8;
-        
+        // Cash on Delivery always returns PENDING
         if (paymentMethod == PaymentMethod.COD) {
             return PaymentStatus.PENDING;
         }
         
-        return isSuccessful ? PaymentStatus.SUCCESS : PaymentStatus.FAILED;
+        // For MPESA and CARD, simulate 80% success rate
+        int randomValue = random.nextInt(100);
+        if (randomValue < 80) {
+            return PaymentStatus.SUCCESS;
+        } else {
+            return PaymentStatus.FAILED;
+        }
     }
 }
