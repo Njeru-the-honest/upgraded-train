@@ -547,9 +547,9 @@ SOFTWARE.
 ## **👥 Authors**
 
 * **Your Name**  
-  * GitHub: @yourusername  
-  * LinkedIn: Your Name  
-  * Email: your.email@example.com
+  * GitHub: Njeru-the-honest  
+  * LinkedIn: ted-njeru 
+  * Email: tednjeru1@gmail.com
 
 ## **⭐ Show Your Support**
 
@@ -570,5 +570,5 @@ Give a ⭐️ if this project helped you\!
 * \[ \] Mobile app (React Native)
 
 \<p align="center"\>  
-Built with ❤️ for learning and demonstration purposes | Last Updated: January 2024  
+Built with ❤️ for learning and demonstration purposes | Last Updated: November 2025  
 \</p\> 
