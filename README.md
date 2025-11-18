@@ -524,7 +524,7 @@ This project is licensed under the **MIT License**. See the **LICENSE** file for
 
 MIT License
 
-Copyright (c) 2024 Your Name
+Copyright (c) 2025 Ted Njeru
 
 Permission is hereby granted, free of charge, to any person obtaining a copy  
 of this software and associated documentation files (the "Software"), to deal  
