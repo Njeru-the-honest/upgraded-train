@@ -5,10 +5,40 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+// Request interceptor - Add JWT token to requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
+});
+
+// Response interceptor - Handle expired tokens
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Handle 401 Unauthorized or 403 Forbidden
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      const token = localStorage.getItem("token");
+      
+      // Only clear and redirect if user was logged in
+      if (token) {
+        console.warn('Token expired or invalid. Redirecting to login...');
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        
+        // Redirect to login page
+        window.location.href = "/auth";
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
+// Create a separate axios instance for public endpoints (no auth required)
+const publicApi = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: { "Content-Type": "application/json" },
 });
 
 export default api;
@@ -25,16 +55,17 @@ export const getUserProfile = async () =>
 
 /* === RESTAURANTS === */
 export const getRestaurants = async () => 
-  api.get("/v1/restaurants");
+  publicApi.get("/v1/restaurants");
 
 export const getMenuByRestaurant = async (id: number) => 
-  api.get(`/v1/restaurants/${id}/menu`);
+  publicApi.get(`/v1/restaurants/${id}/menu`);
 
+// Use publicApi for getting feedbacks (no auth needed)
 export const getRestaurantFeedbacks = async (id: number) =>
-  api.get(`/v1/feedback/restaurant/${id}`);
+  publicApi.get(`/v1/feedback/restaurant/${id}`);
 
 export const getRestaurantRating = async (id: number) =>
-  api.get(`/v1/feedback/restaurant/${id}/rating`);
+  publicApi.get(`/v1/feedback/restaurant/${id}/rating`);
 
 /* === ORDERS === */
 export const placeOrder = async (orderData: any) => 
@@ -60,6 +91,7 @@ export const getPaymentDetails = async (orderId: number) =>
   api.get(`/v1/orders/${orderId}/payment`);
 
 /* === FEEDBACK === */
+// Submit feedback requires authentication
 export const submitFeedback = async (feedbackData: any) =>
   api.post("/v1/feedback", feedbackData);
 

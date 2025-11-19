@@ -6,7 +6,7 @@ import { ShoppingCart, User, LogOut, LayoutDashboard, Shield } from "lucide-reac
 
 const Navbar = () => {
   const { user, logout } = useContext(UserContext);
-  const { getTotalItems } = useContext(CartContext);
+  const { getTotalItems } = useContext(CartContext);  // Make sure this line is here
   const navigate = useNavigate();
 
   const handleLogout = () => {

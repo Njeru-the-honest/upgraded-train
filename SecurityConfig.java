@@ -4,6 +4,7 @@ import com.example.fooddelivery.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,10 +38,22 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
+                // Public endpoints - no authentication required
                 .requestMatchers("/api/auth/**", "/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/restaurants/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                
+                // Feedback endpoints - GET is public, POST/PUT/DELETE require auth
+                .requestMatchers(HttpMethod.GET, "/api/v1/feedback/restaurant/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/feedback/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/v1/feedback/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/feedback/**").authenticated()
+                .requestMatchers("/api/v1/feedback/my-feedbacks").authenticated()
+                
+                // Admin endpoints
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                
+                // All other endpoints require authentication
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
