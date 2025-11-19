@@ -1,11 +1,15 @@
 package com.example.fooddelivery.dto;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class OrderRequest {
     
+    @NotNull(message = "Restaurant ID is required")
     private Long restaurantId;
-    private List<OrderItemRequest> items;
+    
+    @NotNull(message = "Items are required")
+    private List<OrderItemRequest> items;  // Now uses the separate class
     
     // Constructors
     public OrderRequest() {
@@ -33,33 +37,11 @@ public class OrderRequest {
         this.items = items;
     }
     
-    // Inner class for order items
-    public static class OrderItemRequest {
-        private Long menuItemId;
-        private Integer quantity;
-        
-        public OrderItemRequest() {
-        }
-        
-        public OrderItemRequest(Long menuItemId, Integer quantity) {
-            this.menuItemId = menuItemId;
-            this.quantity = quantity;
-        }
-        
-        public Long getMenuItemId() {
-            return menuItemId;
-        }
-        
-        public void setMenuItemId(Long menuItemId) {
-            this.menuItemId = menuItemId;
-        }
-        
-        public Integer getQuantity() {
-            return quantity;
-        }
-        
-        public void setQuantity(Integer quantity) {
-            this.quantity = quantity;
-        }
+    @Override
+    public String toString() {
+        return "OrderRequest{" +
+                "restaurantId=" + restaurantId +
+                ", items=" + items +
+                '}';
     }
 }

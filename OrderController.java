@@ -1,6 +1,7 @@
 package com.example.fooddelivery.controller;
 
 import com.example.fooddelivery.dto.OrderRequest;
+import com.example.fooddelivery.dto.OrderItemRequest;  // Add this import
 import com.example.fooddelivery.dto.PaymentRequest;
 import com.example.fooddelivery.model.Order;
 import com.example.fooddelivery.model.OrderStatus;
@@ -37,6 +38,20 @@ public class OrderController {
     public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest, 
                                         Authentication authentication) {
         try {
+            System.out.println("=== ORDER CONTROLLER ===");
+            System.out.println("Received OrderRequest: " + orderRequest);
+            System.out.println("Restaurant ID: " + orderRequest.getRestaurantId());
+            System.out.println("Items: " + orderRequest.getItems());
+            
+            if (orderRequest.getItems() != null) {
+                for (int i = 0; i < orderRequest.getItems().size(); i++) {
+                    OrderItemRequest item = orderRequest.getItems().get(i);  // Changed from OrderRequest.OrderItemRequest
+                    System.out.println("Item " + i + ":");
+                    System.out.println("  - MenuItemId: " + item.getMenuItemId());
+                    System.out.println("  - Quantity: " + item.getQuantity());
+                }
+            }
+            
             String customerEmail = authentication.getName();
             Order order = orderService.createOrder(orderRequest, customerEmail);
             return ResponseEntity.ok(order);
@@ -73,7 +88,6 @@ public class OrderController {
         }
     }
     
-    // Update order status
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateOrderStatus(
             @PathVariable Long id,
@@ -93,7 +107,6 @@ public class OrderController {
         }
     }
     
-    // Cancel order
     @PutMapping("/{id}/cancel")
     public ResponseEntity<?> cancelOrder(@PathVariable Long id) {
         try {
